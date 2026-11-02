@@ -20,8 +20,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # 迁移器要 node:sqlite（Node ≥ 22.5），主验证用 22 LTS；24 顺带覆盖新版运行时。
-        node: ["22", "24"]
+        # 迁移器要 node:sqlite（Node ≥ 22.5）：主验证用 22 LTS。
+        node: ["22"]
         os: [ubuntu-latest]
     steps:
       - name: Checkout

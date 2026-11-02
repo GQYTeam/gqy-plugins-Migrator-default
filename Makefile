@@ -1,5 +1,5 @@
 # gqy-plugins-Migrator-default：零依赖 Node 一次性插件的本地检查入口。
-# 依赖 Node ≥ 22.5（node:sqlite）；CI 用 Node 22 / 24（见 .github/workflows/ci.yml）。
+# 依赖 Node ≥ 22.5（node:sqlite）；CI 用 Node 22（见 .github/workflows/ci.yml）。
 
 SHELL := /bin/bash
 NODE  ?= node
