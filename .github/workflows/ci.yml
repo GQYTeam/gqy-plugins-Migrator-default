@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Node ${{ matrix.node }} · 语法检查 + npm test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # 迁移器要 node:sqlite（Node ≥ 22.5），主验证用 22 LTS；24 顺带覆盖新版运行时。
+        node: ["22", "24"]
+        os: [ubuntu-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      # 本仓库零依赖、无 lockfile：有 lockfile 才真正安装，否则跳过（标准 §6）。
+      - name: 安装依赖
+        run: npm ci || true
+
+      - name: 语法检查（入口与 src）
+        run: |
+          node --check index.js
+          find src -name '*.js' -exec node --check {} +
+
+      - name: 语法检查（测试）
+        run: find test -name '*.mjs' -exec node --check {} +
+
+      - name: 测试（Node 22.x 的 node:sqlite 需要 --experimental-sqlite，npm test 已带）
+        run: npm test
+
+      - name: 仓库标准文件自检
+        run: |
+          test -f LICENSE && test -f NOTICE && test -f CONTRIBUTING.md && test -f SECURITY.md
+          test -f CHANGELOG.md && test -f .editorconfig && test -f Makefile
+          test -f .github/workflows/ci.yml && test -f .github/dependabot.yml
+          test -f .github/pull_request_template.md
+          test -f .github/ISSUE_TEMPLATE/bug_report.yml
+          test -f .github/ISSUE_TEMPLATE/feature_request.yml
+          test -f .github/ISSUE_TEMPLATE/config.yml
+          # 源码仓库不得带安装标记（PL2）
+          test ! -e .gqy-installed
+
+      - name: Makefile 入口
+        run: make check
